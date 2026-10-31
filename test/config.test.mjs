@@ -5,16 +5,15 @@ import { Config, normalizeConfig } from '../lib/config.js'
 test('native DSH Config exposes writable settings fields', () => {
   assert.ok(Config, 'Config must be exported for the DSH settings page')
   const serialized = JSON.stringify(Config.toJSON())
-  for (const field of ['ownerId', 'onebotUrl', 'onebotToken', 'chattyDelaySec', 'dailyMax']) {
+  for (const field of ['ownerId', 'onebotUrl', 'onebotToken', 'chattyDelaySec', 'dailyMax', 'personaFile', 'personaMaxChars']) {
     assert.match(serialized, new RegExp(`"${field}"`))
   }
+  assert.doesNotMatch(serialized, /systemPrompt/)
   assert.match(serialized, /volatile/)
   const config = normalizeConfig({})
   assert.equal(config.chattyDelaySec, 10)
-  assert.match(config.systemPrompt, /一次一两句/)
-  assert.match(config.systemPrompt, /不写标题/)
-  assert.match(config.systemPrompt, /不列条目/)
-  assert.match(config.systemPrompt, /不总结成文/)
+  assert.equal(config.personaFile, '')
+  assert.equal(config.personaMaxChars, 3000)
 })
 
 test('normalizeConfig clamps unsafe values and keeps credentials private by default', () => {

@@ -1,20 +1,23 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { mkdtempSync, rmSync } from 'node:fs'
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { ProactiveChatEngine } from '../lib/engine.js'
+import { PersonaFileLoader } from '../lib/persona.js'
 import { StateStore, ownerTag } from '../lib/store.js'
 
 function harness(overrides = {}, compatibility = {
   allowReply: true,
   allowProactive: true,
   reason: 'standalone',
-}) {
-  const directory = mkdtempSync(join(tmpdir(), 'dsh-proactive-chat-'))
+}, options = {}) {
+  const directory = options.directory ?? mkdtempSync(join(tmpdir(), 'dsh-proactive-chat-'))
+  const ownsDirectory = !options.directory
   const clock = { now: Date.UTC(2026, 9, 31, 4, 0, 0) }
   const timers = []
   const sent = []
+  const requests = []
   const config = {
     enabled: true,
   ownerId: '1234567890',
@@ -39,14 +42,25 @@ function harness(overrides = {}, compatibility = {
     requestTimeoutSec: 45,
     llmProvider: '',
     llmModel: '',
-    systemPrompt: '自然聊天。',
+    personaFile: 'C:/test/persona.md',
+    personaMaxChars: 3000,
     ...overrides,
   }
   const llm = {
-    async *stream() {
+    async *stream(request) {
+      requests.push(request)
       yield { type: 'text-delta', text: '我还在，你接着说。' }
       yield { type: 'usage', usage: { totalTokens: 12 } }
     },
+  }
+  const personaLoader = options.personaLoader ?? {
+    load: () => ({
+      ok: true,
+      path: 'C:/test/persona.md',
+      text: '自然聊天。',
+      stale: false,
+      changed: false,
+    }),
   }
   const store = new StateStore(join(directory, 'state.json'), { now: () => clock.now })
   const engine = new ProactiveChatEngine({
@@ -65,13 +79,14 @@ function harness(overrides = {}, compatibility = {
     },
     clearTimer: () => {},
     random: () => 0.5,
+    personaLoader,
   })
   engine.start()
   return {
-    directory, clock, timers, sent, config, store, engine, compatibility,
+    directory, clock, timers, sent, requests, config, store, engine, compatibility,
     cleanup: () => {
       engine.stop()
-      rmSync(directory, { recursive: true, force: true })
+      if (ownsDirectory) rmSync(directory, { recursive: true, force: true })
     },
   }
 }
@@ -204,6 +219,56 @@ test('identity companion suppresses every outgoing message from the standalone p
     const state = h.store.load(h.config.ownerId)
     assert.equal(h.sent.length, 0)
     assert.equal(state.history.length, 1)
+  } finally {
+    h.cleanup()
+  }
+})
+
+test('hot-reloads the selected persona file before the next reply', async () => {
+  const directory = mkdtempSync(join(tmpdir(), 'dsh-proactive-persona-'))
+  const personaFile = join(directory, 'persona.md')
+  writeFileSync(personaFile, '示例角色：说话简洁。', 'utf8')
+  const h = harness({ personaFile }, undefined, {
+    directory,
+    personaLoader: new PersonaFileLoader(),
+  })
+  try {
+    h.engine.onEvent(event(1, '你好'))
+    await h.engine.flush()
+    assert.match(h.requests[0].system, /示例角色：说话简洁。/)
+    assert.match(h.requests[0].system, /每次只输出一到两句/)
+
+    writeFileSync(personaFile, '示例角色：喜欢聊天气，说话更柔和一些。', 'utf8')
+    h.clock.now += 1000
+    h.engine.onEvent(event(2, '今天天气不错'))
+    await h.engine.flush()
+    assert.match(h.requests[1].system, /示例角色：喜欢聊天气，说话更柔和一些。/)
+    assert.doesNotMatch(h.requests[1].system, /示例角色：说话简洁。/)
+  } finally {
+    h.cleanup()
+    rmSync(directory, { recursive: true, force: true })
+  }
+})
+
+test('does not send model output when no valid persona file has loaded', async () => {
+  const warnings = []
+  const h = harness({ personaFile: '' }, undefined, {
+    personaLoader: {
+      load: () => ({
+        ok: false,
+        code: 'persona-file-missing',
+        error: '还没有选择人格文件',
+        path: '',
+      }),
+    },
+  })
+  h.engine.logger = { info() {}, warn: (message) => warnings.push(message) }
+  try {
+    h.engine.onEvent(event(1, '你好'))
+    await h.engine.flush()
+    assert.equal(h.requests.length, 0)
+    assert.equal(h.sent.length, 0)
+    assert.match(warnings[0], /还没有选择人格文件/)
   } finally {
     h.cleanup()
   }

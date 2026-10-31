@@ -129,6 +129,9 @@ test('client exposes every operator field and preserves a blank secret', () => {
     JSON.stringify([{ op: 'set', path: ['onebotToken'], value: 'new-secret' }]),
   )
   assert.equal(plugin.fields.find((field) => field.key === 'onebotToken')?.kind, 'secret')
+  assert.equal(plugin.fields.find((field) => field.key === 'personaFile')?.kind, 'text')
+  assert.ok(plugin.fields.some((field) => field.key === 'personaMaxChars'))
+  assert.equal(plugin.fields.some((field) => field.key === 'systemPrompt'), false)
   assert.ok(plugin.fields.some((field) => field.key === 'chattyDelaySec'))
   assert.ok(plugin.fields.some((field) => field.key === 'quietHoursEnabled'))
   assert.ok(plugin.fields.some((field) => field.key === 'dailyTokens'))

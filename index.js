@@ -73,7 +73,7 @@ export function apply(ctx, pluginConfig = {}) {
     const compatibility = readIdentityCompatibility(config)
     writeRuntimeStatus(runtimeFile, {
       plugin: name,
-      version: '0.2.0',
+      version: '0.3.0',
       pid: process.pid,
       updatedAt: new Date().toISOString(),
       enabled: config.enabled,
