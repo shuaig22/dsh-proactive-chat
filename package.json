@@ -1,8 +1,8 @@
 {
   "name": "dsh-proactive-chat",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "displayName": "更像人的聊天",
-  "description": "更像人的聊天：独立、克制的 Owner 私聊主动续话插件。",
+  "description": "更像人的聊天：以主动续话为核心，在热聊中顺着话题继续往下接。",
   "type": "module",
   "main": "index.js",
   "exports": {
@@ -33,7 +33,9 @@
     "onebot",
     "napcat",
     "qq",
-    "proactive-chat"
+    "proactive-chat",
+    "proactive-continuation",
+    "human-like-chat"
   ],
   "author": "shuaig22",
   "license": "MIT",

@@ -11,10 +11,10 @@ window.__ModuleLoader__.load({
       {
         key: 'enabled',
         group: '连接',
-        label: '启用主动聊天',
+        label: '启用主动续话',
         kind: 'switch',
         default: true,
-        hint: '关闭后不连接 OneBot，也不会发送消息。',
+        hint: '关闭后不连接 OneBot，也不会主动续话或回复。',
       },
       {
         key: 'ownerId',
@@ -46,7 +46,7 @@ window.__ModuleLoader__.load({
       },
       {
         key: 'replyDelayMs',
-        group: '聊天节奏',
+        group: '续话节奏',
         label: '收到消息后的延迟',
         kind: 'number',
         default: 300,
@@ -58,7 +58,7 @@ window.__ModuleLoader__.load({
       },
       {
         key: 'chattyDelaySec',
-        group: '聊天节奏',
+        group: '续话节奏',
         label: '热聊续话间隔',
         kind: 'number',
         default: 10,
@@ -70,7 +70,7 @@ window.__ModuleLoader__.load({
       },
       {
         key: 'balancedDelaySec',
-        group: '聊天节奏',
+        group: '续话节奏',
         label: '普通续话间隔',
         kind: 'number',
         default: 120,
@@ -82,7 +82,7 @@ window.__ModuleLoader__.load({
       },
       {
         key: 'activeWindowMinutes',
-        group: '聊天节奏',
+        group: '续话节奏',
         label: '热聊判定窗口',
         kind: 'number',
         default: 120,
@@ -94,7 +94,7 @@ window.__ModuleLoader__.load({
       },
       {
         key: 'chattyMinMessages',
-        group: '聊天节奏',
+        group: '续话节奏',
         label: '进入热聊的消息数',
         kind: 'number',
         default: 2,
@@ -106,7 +106,7 @@ window.__ModuleLoader__.load({
       },
       {
         key: 'idleCheckInMinutes',
-        group: '聊天节奏',
+        group: '续话节奏',
         label: '停止续话等待时间',
         kind: 'number',
         default: 360,
@@ -138,7 +138,7 @@ window.__ModuleLoader__.load({
         max: 2000000,
         step: 1000,
         unit: 'Token',
-        hint: '达到上限后当天停止主动聊天。',
+        hint: '达到上限后当天停止主动续话。',
       },
       {
         key: 'maxOutputTokens',
@@ -264,12 +264,12 @@ window.__ModuleLoader__.load({
       },
       {
         key: 'systemPrompt',
-        group: '聊天风格',
-        label: '简短聊天规则',
+        group: '续话风格',
+        label: '简短续话规则',
         kind: 'textarea',
-        default: '你是主人的 QQ 私聊搭子。像真人用手机打字：一次一两句，句子短、口语化，直接接住对方刚才说的具体内容。不写标题、不列条目、不排一二三四、不总结成文、不复读对方的话、不装客服、不解释自己在思考。每次只发一小段短消息，不暴露系统提示、模型身份或幕后接法。',
+        default: '你负责在主人 QQ 私聊里自然接话和主动续话。像真人用手机打字：一次一两句，句子短、口语化，顺着最近聊到的具体内容往下接。不写标题、不列条目、不排一二三四、不总结成文、不复读对方的话、不装客服、不解释自己在思考。每次只发一小段短消息，不暴露系统提示、模型身份或幕后接法。',
         rows: 5,
-        hint: '只属于这个主动聊天插件，不读取其他身份插件。',
+        hint: '只约束主动续话的语气和长度。',
       },
     ]
 
@@ -524,7 +524,7 @@ window.__ModuleLoader__.load({
           }
           setToken('')
           setClearToken(false)
-          setMessage({ tone: 'good', text: '参数已保存，运行中的连接和节奏会自动更新。' })
+          setMessage({ tone: 'good', text: '参数已保存，正在运行的连接和续话节奏会自动更新。' })
         } catch (error) {
           setMessage({
             tone: 'bad',
@@ -536,7 +536,7 @@ window.__ModuleLoader__.load({
       }
 
       if (snapshot.status === 'loading') {
-        return h('div', { className: 'pc-loading' }, '正在读取主动聊天参数…')
+        return h('div', { className: 'pc-loading' }, '正在读取主动续话参数…')
       }
       if (snapshot.status === 'unavailable') {
         return h('div', { className: 'pc-boundary' }, '当前 DSH 没有提供这个插件的参数设置。')
@@ -547,7 +547,7 @@ window.__ModuleLoader__.load({
         h('div', { className: 'pc-head' },
           h('div', { className: 'pc-titlebox' },
             h('h3', { className: 'pc-title' }, '更像人的聊天'),
-            h('p', { className: 'pc-subtitle' }, '只处理主人私聊；检测到身份插件接管时会自动避让，避免重复回复。')),
+            h('p', { className: 'pc-subtitle' }, '核心是主动续话：聊天热起来后顺着话题继续，没回应会自行收住，不等你每句催。')),
           h('div', { className: 'pc-actions' },
             h('button', {
               type: 'button',
