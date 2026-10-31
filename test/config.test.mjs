@@ -12,6 +12,7 @@ test('native DSH Config exposes writable settings fields', () => {
   assert.match(serialized, /volatile/)
   const config = normalizeConfig({})
   assert.equal(config.chattyDelaySec, 10)
+  assert.equal(config.dailyMax, 1000)
   assert.equal(config.personaFile, '')
   assert.equal(config.personaMaxChars, 3000)
 })

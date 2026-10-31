@@ -121,7 +121,7 @@ window.__ModuleLoader__.load({
         group: '限额与冷却',
         label: '每日消息上限',
         kind: 'number',
-        default: 160,
+        default: 1000,
         min: 0,
         max: 1000,
         step: 1,
