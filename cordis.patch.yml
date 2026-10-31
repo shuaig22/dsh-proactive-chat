@@ -1,0 +1,7 @@
+# The entry id is also the settings namespace. Keep it stable.
+- insert:
+    - id: dsh-proactive-chat
+      name: dsh-proactive-chat
+      config:
+        enabled: true
+
