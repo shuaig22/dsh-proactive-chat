@@ -48,3 +48,15 @@ test('normalizeConfig unwraps live DSH configuration references', () => {
   assert.equal(config.chattyDelaySec, 20)
 })
 
+test('normalizes typing controls and prevents unbounded send delays', () => {
+  const config = normalizeConfig({
+    typingDelayEnabled: { get: () => false },
+    typingMsPerChar: -1,
+    typingMaxDelayMs: 999999,
+  })
+  assert.equal(config.typingDelayEnabled, false)
+  assert.equal(config.typingMsPerChar, 40)
+  assert.equal(config.typingMaxDelayMs, 30000)
+  assert.equal(normalizeConfig({}).typingDelayEnabled, true)
+})
+

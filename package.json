@@ -1,6 +1,6 @@
 {
   "name": "dsh-proactive-chat",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "displayName": "更像人的聊天",
   "description": "更像人的聊天：以主动续话为核心，支持热更新本机人格文件。",
   "type": "module",

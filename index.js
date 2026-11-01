@@ -61,6 +61,7 @@ export function apply(ctx, pluginConfig = {}) {
     getRoute: (config) => resolveRoute(ctx, config),
     store,
     getCompatibility: () => readIdentityCompatibility(getConfig()),
+    isConnected: () => !!client?.connected,
     sendPrivate: async (ownerId, text) => {
       if (!client?.connected) throw new Error('OneBot 尚未连接，无法发送消息')
       return client.sendPrivate(ownerId, text)
@@ -73,7 +74,7 @@ export function apply(ctx, pluginConfig = {}) {
     const compatibility = readIdentityCompatibility(config)
     writeRuntimeStatus(runtimeFile, {
       plugin: name,
-      version: '0.3.1',
+      version: '0.4.0',
       pid: process.pid,
       updatedAt: new Date().toISOString(),
       enabled: config.enabled,
@@ -91,7 +92,7 @@ export function apply(ctx, pluginConfig = {}) {
 
   const syncTransport = () => {
     if (stopped) return
-    const config = getConfig()
+    const config = engine.syncConfig()
     const signature = JSON.stringify([config.enabled, config.onebotUrl, config.onebotToken])
     if (signature === transportSignature) {
       writeRuntime(config)

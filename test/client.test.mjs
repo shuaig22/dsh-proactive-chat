@@ -136,3 +136,16 @@ test('client exposes every operator field and preserves a blank secret', () => {
   assert.ok(plugin.fields.some((field) => field.key === 'quietHoursEnabled'))
   assert.ok(plugin.fields.some((field) => field.key === 'dailyTokens'))
 })
+
+test('typing controls can be edited and submitted through the settings form', () => {
+  const { plugin } = loadClient()
+  const baseline = plugin.test.makeDraft({})
+  const draft = { ...baseline, typingDelayEnabled: false, typingMsPerChar: 200, typingMaxDelayMs: 8000 }
+  assert.equal(plugin.test.validateDraft(draft), '')
+  const ops = plugin.test.buildOps(baseline, draft)
+  assert.deepEqual(JSON.parse(JSON.stringify(ops)), [
+    { op: 'set', path: ['typingDelayEnabled'], value: false },
+    { op: 'set', path: ['typingMsPerChar'], value: 200 },
+    { op: 'set', path: ['typingMaxDelayMs'], value: 8000 },
+  ])
+})

@@ -118,3 +118,17 @@ test('truncates a loaded persona to the configured character limit', () => {
     assert.equal(result.truncated, true)
   })
 })
+
+test('applies a changed character limit without changing the persona file', () => {
+  withDirectory((directory) => {
+    const file = join(directory, 'persona.md')
+    writeFileSync(file, '一二三四五六', 'utf8')
+    const loader = new PersonaFileLoader()
+    assert.equal(loader.load(file, 2).text, '一二')
+    assert.equal(loader.load(file, 5).text, '一二三四五')
+    assert.equal(loader.load(file, 3).text, '一二三')
+    unlinkSync(file)
+    assert.equal(loader.load(file, 1).text, '一')
+    assert.equal(loader.load(file, 6).text, '一二三四五六')
+  })
+})
